@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+
+这是首页html
+
+<script src="/js/jquery-1.11.1.min.js"></script>
+<script>
+$.ajax({
+	type:'post',
+    url: '/api/test/',
+    dataType: "json",
+    data:{name:1234567,password:838016174},
+    success: function (result) {
+        console.log(result)
+    }
+});
+</script>
+</body>
+</html>
