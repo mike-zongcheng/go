@@ -11,11 +11,7 @@ import (
 
 const(
 	mongoUrl = "mongodb://localhost:27017"
-)
-
-var (
-	mogSessin *mgo.Session
-	dataBase = "mydb"
+	PortNumber = ":9000"
 )
 
 type Login struct{
@@ -34,14 +30,17 @@ type mgoMap struct{
 	Arr []testMgo
 }
 
-func routing(){
-	http.Handle("/js/", http.FileServer( http.Dir("content") ))
-	http.Handle("/css/", http.FileServer( http.Dir("content") ))
-	http.Handle("/images/", http.FileServer( http.Dir("content") ))
+func static(){
+	http.Handle("/js/", http.FileServer( http.Dir("public") ))
+	http.Handle("/css/", http.FileServer( http.Dir("public") ))
+	http.Handle("/images/", http.FileServer( http.Dir("public") ))
+	http.Handle("/dist/", http.FileServer( http.Dir("") ))
+}
 
+func routing(){
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {// 首页与404路由
         if r.URL.Path == "/" {
-        	t, err := template.ParseFiles("view/home/index.html");
+        	t, err := template.ParseFiles("index.html");
 			if err == nil {
 				t.Execute(w, nil)
 			}
@@ -53,11 +52,39 @@ func routing(){
         }
     })
 
+}
 
-	http.HandleFunc("/search/", func(w http.ResponseWriter, r*http.Request){
-		w.Write([]byte("这是搜索"))
-	})
+func mgoTest(){
+	session, err := mgo.Dial(mongoUrl)
+	/*defer session.Close()
+	session.SetMode(mgo.Monotonic, true)*/
+	if err != nil{
+		panic(err)
+	}
+	collection := session.DB("godb").C("user")
+	
+	 result := testMgo{} // 查询数据
+	collection.Find( bson.M{"name":"海错图"} ).One(&result)
+	//fmt.Printf("内容：%s",result.AUTHOR)
 
+	/*downData := &testMgo{"悲惨世界", 60, "雨果"}// 插入数据
+	err = collection.Insert( &testMgo{"如果宅", 40, "有时右逝"}, downData )
+	if err != nil{
+		panic(err)
+	}*/
+
+	/*var mgoArr mgoMap
+	iter := collection.Find( bson.M{"name": bson.M{"$regex":"海错"} } ).Iter();
+	for iter.Next(&result){
+		mgoArr.Arr = append(mgoArr.Arr, result)
+	}
+	fmt.Printf("%s", mgoArr.Arr)
+*/
+	// collection.UpdateAll( bson.M{"name":"悲惨世界"}, bson.M{ "$set": bson.M{"author":"雨果"} } )
+	// collection.RemoveAll( bson.M{"name":"悲惨世界"} )
+}
+
+func pageInterface(){
 	http.HandleFunc("/api/test/", func(w http.ResponseWriter, r*http.Request){
 		w.Header().Set("content-type", "application/json")
 
@@ -71,41 +98,13 @@ func routing(){
 			w.Write(jsonData)
 		}
 	})
-
-}
-
-func mgoTest(){
-	session, err := mgo.Dial(mongoUrl)
-	/*defer session.Close()
-	session.SetMode(mgo.Monotonic, true)*/
-	if err != nil{
-		panic(err)
-	}
-	db := session.DB("godb")
-	collection := db.C("user")
-	
-	result := testMgo{} // 查询数据
-	/*collection.Find( bson.M{"name":"海错图"} ).One(&result)
-	fmt.Printf("内容：%s",result.AUTHOR)*/
-
-	/*downData := &testMgo{"悲惨世界", 60, "雨果"}// 插入数据
-	err = collection.Insert( &testMgo{"如果宅", 40, "有时右逝"}, downData )
-	if err != nil{
-		panic(err)
-	}*/
-
-	var mgoArr mgoMap
-	iter := collection.Find( bson.M{"name":"悲惨世界"} ).Iter();
-	for iter.Next(&result){
-		mgoArr.Arr = append(mgoArr.Arr, result)
-	}
-	fmt.Printf("%s", mgoArr.Arr)
-
 }
 
 func main() {
-	routing()
+	static()// 静态目录
+	routing()// 路由
+	mgoTest()// 数据库测试
+	pageInterface()// 接口
 	fmt.Printf("启动成功\n")
-	mgoTest()
-	http.ListenAndServe(":9000",nil)
+	http.ListenAndServe(PortNumber, nil)
 }
