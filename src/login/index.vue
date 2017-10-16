@@ -3,21 +3,10 @@
 </style>
 
 <template>
-	<div class="main">
-		<ul class="article_list">
-			<li>
-				<h6 class="article_listTitle">标题</h6>
-				<div class="article_introduction">简介</div>
-				<div class="article_listInfo">
-					<ul class="article_listLabel">
-						<li>javascript</li>
-						<li>react</li>
-					</ul>
-					<span class="article_listTime">时间</span>
-				</div>
-			</li>
-		</ul>
-		<router-link to="./login">登录</router-link>
+	<div>
+		<div><input type="text" name="" v-model="name"></div>
+		<div><input type="password" name=""  v-model="password"></div>
+		<button type="button" @click="login">登录</button>
 	</div>
 </template>
 
@@ -41,7 +30,7 @@ export default {
 				alert("请填写密码")
 				return
 			}
-			axios.get("/api/test/",{
+			axios.get("/api/Login/",{
 				params:{
 					name:this.name,
 					password:this.password
